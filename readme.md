@@ -1,1 +1,1 @@
-Repository for the simulations an visualizations
+Repository for the simulations and visualizations
