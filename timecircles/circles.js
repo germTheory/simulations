@@ -1,3 +1,4 @@
+// generates an exponential distribution random variable to model time step randomness
 var exp = function(lambda){
   var res = Math.log(1-Math.random())/(1/-lambda);
   return res;
@@ -83,6 +84,7 @@ var simulate = function(n,start,end,lambda){
 
   }
 
+  // until simulation time is over, create data out of each event and generate the next one.
   while (t < end && events.length ){
 
     // pop the next event.
@@ -94,10 +96,13 @@ var simulate = function(n,start,end,lambda){
 
     // update the time
     t = currentEvent.time;
+
+    // controls how much to move
     var interpolation = currentEvent.interpolator;
 
 
 
+    // gets new positions based on the event update calculation
     var vals = currentEvent.update();
 
     saveIntoArray({
@@ -107,15 +112,16 @@ var simulate = function(n,start,end,lambda){
       time:t
     });
 
-    // update event and insert it on list.
+    // modify event interpolator and reinsert it into the future event list
     currentEvent.interpolator = (interpolation + 2*Math.PI/(100));
 
     //generate next event for this person
     currentEvent.time = t + exp(lambda);
+
+    //make sure to insert events sorted
     insertEventSorted(currentEvent);
 
   }
 
   return results;
 };
-//simulate(Date.now()-24*3600*1000, Date.now(),120000);
