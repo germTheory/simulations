@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Visualizer</title>
+
+  </head>
+  <body>
+  <div id="container"></div>
+  <script src='bower_components/d3/d3.min.js'></script>
+  <script src='timecircles/circles.js'></script>
+  <script type="text/javascript">
+
+    var num = 20;
+
+    var start = Date.now()-24*3600*1000;
+    var end = Date.now();
+    var res = simulate(num,start,end,120000);
+    var data = [];
+
+    // area for which the simulation runs
+    var minLat = 37.789599;
+    var maxLat = 37.757034;
+    var minLng = -122.452755;
+    var maxLng = -122.390786;
+
+    var width = 600;
+    var height = 400;
+
+    // append a g element in in an svg for drawing
+    var svg= d3.select('#container').append('svg').attr('width',width).attr('height',height).append('g');
+
+    // transforms lat to screen coordinates
+    var latToScreen = function(lat){
+     return 50+0.5*height*(lat-minLat)/(maxLat-minLat);
+    };
+    // transforms lng to screen coordinates
+    var lngToScreen = function(lng){
+      return 50+0.5*width*(lng-minLng)/(maxLng-minLng);
+    };
+    var indexes = {};
+    var c = 0;
+    var t = start;
+    var update =function(){
+
+      var nextEvent = res[c];
+      if(nextEvent){
+        var dt = nextEvent.time - t;
+        t = nextEvent.time;
+        var circles = svg.selectAll('circle').data(data);
+        circles
+          .enter()
+          .append('circle')
+          .attr('fill','lightblue')
+          .attr('r',10)
+          .attr('cx',function(d){return lngToScreen(d.lng);})
+          .attr('cy',function(d){return latToScreen(d.lat);});
+        circles
+          .transition().duration(100)
+          .attr('cx',function(d){return lngToScreen(d.lng);})
+          .attr('cy',function(d){return latToScreen(d.lat);});
+
+        // keeps data points consistently grouped by id
+        if(indexes[nextEvent.id]===undefined){
+          data.push(nextEvent);
+          indexes[nextEvent.id]=data.length-1;
+        }else{
+          data[indexes[nextEvent.id]]=nextEvent;
+        }
+        // iterates to the next data point
+        c++;
+      }
+
+    };
+
+    setInterval(update,10);
+
+  </script>
+  </body>
+</html>
